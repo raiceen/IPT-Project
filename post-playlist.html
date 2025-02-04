@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Your Favorite Playlist</title>
+
+    <link rel="stylesheet" href="css/feed-style.css">
+
+    <script src="src/postPlaylist.ts" type="module"></script>
+
+</head>
+<body>
+    <h1>Share Your Favorite Playlist</h1>
+    <form id="playlistForm">
+        <label for="playlistLink">Playlist Link:</label>
+        <input type="url" id="playlistLink" placeholder="Enter Spotify playlist link" required>
+        <button type="submit">Post Playlist</button>
+    </form>
+    <section id="postedPlaylists">
+        <h2>Posted Playlists</h2>
+        <ul id="playlistList"></ul>
+    </section>
+    
+    
+</body>
+</html>
