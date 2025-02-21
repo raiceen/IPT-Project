@@ -1,0 +1,16 @@
+body {
+  margin: 25px 25px;
+}
+
+#goToPostPage {
+  width: 100px;
+  height: 50px;
+}
+
+#goToPostPage button {
+  padding: 5px;
+}
+
+.avatar img {
+  width: 50px;
+}

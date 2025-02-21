@@ -1,0 +1,24 @@
+html {
+  height: 100%;
+}
+
+#contentDiv {
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: row;
+  font-family: Roboto, Arial;
+  font-weight: 500px;
+  padding: 0;
+  column-gap: 20px;
+  height: 100%;
+}
+
+
+.feed-style {
+  display: flex;
+  flex-direction: column;
+  column-gap: 50px;
+}

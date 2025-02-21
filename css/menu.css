@@ -1,0 +1,64 @@
+  .left-section {
+    position: fixed;
+    width: 200px;
+    padding: 20px;
+    height: 100%;
+    border-right: 1px solid rgb(114, 114, 114);
+    z-index: 100;
+    margin-left: -10px;
+  }
+
+  .logo {
+    padding: 40px 10px;
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: column;
+    row-gap: 5px;
+  }
+
+  .home,
+  .search,
+  .explore {
+    display: flex;
+    flex-direction: row;
+    column-gap: 20px;
+    cursor: pointer;
+    padding: 10px 10px;
+    height: 30px;
+    width: 95%;
+    border-radius: 10px;
+    transition: ease-out 0.1s;
+  }
+
+  .home:hover,
+  .search:hover,
+  .explore:hover {
+    background-color: rgb(220, 218, 218);
+  }
+
+  .home-icon,
+  .explore-icon {
+    width: 30px;
+    align-self: center;
+    margin-bottom: 5px;
+  }
+
+
+  .search-icon {
+    align-self: center;
+    height: 40px;
+    width: 25px;
+    margin-left: 3px;
+  }
+
+  .home-text,
+  .explore-text {
+    align-self: center;
+  }
+
+  .search-text {
+    align-self: center;
+    margin-left: 2px;
+  }

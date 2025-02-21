@@ -3,16 +3,27 @@
     <head>
         <meta charset="utf-8">
         <title>My Spotify Profile</title>
-        <script src="src/script.ts" type="module"></script>
+        <link rel="stylesheet" href="css/profile.css">
+        <link rel="stylesheet" href="css/general.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+
+        <script type="module" src="/src/script.ts"></script>
     </head>
     <body>
-      <button id="goToPostPage">Go to Post Playlist Page</button>
+      <button id="goToPostPage">Feed</button>
 
       <h1>Display your Spotify profile data</h1>
 
       <section id="profile">
       <h2>Logged in as <span id="displayName"></span></h2>
-      <span id="avatar"></span>
+      <div class="avatar">
+        <span id="avatar"></span>
+
+      </div>
       <ul>
           <li>User ID: <span id="id"></span></li>
           <li>Email: <span id="email"></span></li>

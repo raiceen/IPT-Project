@@ -6,22 +6,67 @@
     <title>Post Your Favorite Playlist</title>
 
     <link rel="stylesheet" href="css/feed-style.css">
+    <link rel="stylesheet" href="css/menu.css">
+    <link rel="stylesheet" href="css/general.css">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script src="src/script.ts" type="module"></script>
     <script src="src/postPlaylist.ts" type="module"></script>
 
 </head>
 <body>
-    <h1>Share Your Favorite Playlist</h1>
-    <form id="playlistForm">
-        <label for="playlistLink">Playlist Link:</label>
-        <input type="url" id="playlistLink" placeholder="Enter Spotify playlist link" required>
-        <button type="submit">Post Playlist</button>
-    </form>
-    <section id="postedPlaylists">
-        <h2>Posted Playlists</h2>
-        <ul id="playlistList"></ul>
-    </section>
-    
-    
+    <div class="feed-style">
+        <div class="left-section">
+            <div class="logo"> 
+              Logo
+            </div>
+            <div class="menu">
+              <div class="home">
+                <img class="home-icon" src="/icons/1515716962.svg">
+                <div class="home-text">
+                  Home
+                </div>
+              </div>
+              <div class="search">
+                <img class="search-icon" src="/icons/Search-icon.svg">
+                <div class="search-text">
+                  Search
+                </div>
+              </div>
+              <div class="explore">
+                <img class="explore-icon" src="/icons/1652448599radio-svgrepo-com.svg">
+                <div class="explore-text">
+                  Explore
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="feed">
+          <div class="postContainer">
+            <div class="postContent">
+              <span id="avatar"> </span>
+              <form id="playlistForm">
+                <div class="type-selector">
+                  <button type="button" class="type-button active" data-type="playlist">
+                      Playlist
+                  </button>
+                  <button type="button" class="type-button" data-type="track">
+                      Song
+                  </button>
+                </div>
+                <input type="text" id="playlistLink" placeholder="Share your favorite Music" required>
+                <input id="postCaption" placeholder="What do you think of it?">
+                <button type="submit">POST</button>
+              </form>
+            </div>
+          </div>
+          <section id="postedPlaylists">
+              <div id="playlistList"></div>
+          </section>
+        </div>
+    </div>
 </body>
 </html>
