@@ -1,6 +1,6 @@
 /// <reference path="./type.d.ts" />
 
-const clientId = "4d3d048c157c413fa6c5686361d5e11e";
+const clientId = "4d3d048c157c413fa6c5686361d5e11e"; // client ID
 const params = new URLSearchParams(window.location.search);
 const code = params.get("code");
 params.append("scope", "user-read-private user-read-email");
@@ -18,7 +18,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
   params.append("client_id", clientId);
   params.append("response_type", "code");
   params.append("redirect_uri", "http://localhost:5173/callback");
-  params.append("scope", "user-read-private user-read-email playlist-read-private" );
+  params.append("scope", "user-read-private user-read-email playlist-read-private" ); // scope of the Spotify API
   params.append("code_challenge_method", "S256");
   params.append("code_challenge", challenge);
 
@@ -36,6 +36,7 @@ async function validateToken(token: string): Promise<boolean> {
 
 const storedToken = localStorage.getItem("accessToken");
 
+// Check if the Token is Stored in the Local Storage
 if (storedToken) {
     console.log("Using stored token:", storedToken);
     const profile = await fetchProfile(storedToken);
@@ -70,7 +71,6 @@ if (storedToken) {
   }
 }
 
-
 function generateCodeVerifier(length: number) {
   let text = '';
   let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -90,9 +90,10 @@ async function generateCodeChallenge(codeVerifier: string) {
       .replace(/=+$/, '');
 }
 
+// TOKEN HANDLING! Important for URL navigating and 
 export async function getAccessToken(clientId: string, code: string): Promise<string> {
-  const verifier = localStorage.getItem("verifier");
-  
+  const verifier = localStorage.getItem("verifier"); //stores the token to the local storage
+
   const params = new URLSearchParams();
   params.append("client_id", clientId);
   params.append("grant_type", "authorization_code");
@@ -120,10 +121,16 @@ export async function getAccessToken(clientId: string, code: string): Promise<st
 async function fetchProfile(token: string): Promise<UserProfile> {
   const result = await fetch("https://api.spotify.com/v1/me", {
       method: "GET",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}` }, // Identify the user that sending the request to Spotify
   });
 
   if (!result.ok) {
+    if (result.status === 401) {
+      localStorage.removeItem("accessToken");
+      alert("Your session has expired. Please log in again.");
+      window.location.href = "/login.html"; // Adjust the path to your login page
+    }
+    
       throw new Error(
           `Failed to fetch profile: ${result.status} - ${await result.text()}`
       );
@@ -134,6 +141,39 @@ async function fetchProfile(token: string): Promise<UserProfile> {
   return profile;
 }
 
+export async function fetchPlaylistDetails(token: string, playlistId: string): Promise<any> {
+  const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+      throw new Error(`Failed to fetch playlist details: ${response.status} - ${await response.text()}`);
+  }
+
+  const data = await response.json();
+
+  const totalDurationMs = data.tracks.items.reduce(
+      (total: number, item: any) => total + item.track.duration_ms,
+      0
+  );
+  const totalDurationMinutes = Math.floor(totalDurationMs / 60000);
+  
+  
+  return {
+    postId: `${playlistId}_${Date.now()}`, 
+    userId: "", 
+    userName: "",
+    userImage: "",
+    timestamp: new Date().toISOString(),
+    // playlist details
+    name: data.name,
+    thumbnail: data.images[0]?.url ?? null,
+    totalTracks: data.tracks.total,
+    totalDuration: totalDurationMinutes,
+    link: data.external_urls.spotify,
+  }
+} 
+// 
 export async function fetchPlaylists(token: string,): Promise<any[]> {
   console.log("Fetching playlists with token:", token);
 
@@ -163,44 +203,8 @@ export async function fetchPlaylists(token: string,): Promise<any[]> {
 
   localStorage.setItem("playlists", JSON.stringify(playlists));
 
-
   return detailedPlaylists;
 }
-
-// PLAYLIST DETAILS! g
-export async function fetchPlaylistDetails(token: string, playlistId: string): Promise<any> {
-    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch playlist details: ${response.status} - ${await response.text()}`);
-    }
-
-    const data = await response.json();
-
-    const totalDurationMs = data.tracks.items.reduce(
-        (total: number, item: any) => total + item.track.duration_ms,
-        0
-    );
-    const totalDurationMinutes = Math.floor(totalDurationMs / 60000);
-    
-    
-    return {
-      postId: `${playlistId}_${Date.now()}`, 
-      userId: "", 
-      userName: "",
-      userImage: "",
-      timestamp: new Date().toISOString(),
-      // playlist details
-      name: data.name,
-      thumbnail: data.images[0]?.url ?? null,
-      totalTracks: data.tracks.total,
-      totalDuration: totalDurationMinutes,
-      link: data.external_urls.spotify,
-    }
-}
-
 
 function populateUI(profile: UserProfile) {
 
@@ -247,7 +251,7 @@ function populateUI(profile: UserProfile) {
   }
 }
 
-export function populatePlaylists(playlists: any[]) {
+export function populatePlaylists(playlists: any[]) { // Check if the playlist has content
   const playlistList = document.getElementById("playlistList")!;
   playlistList.innerHTML = ""; // Clear previous content
 
@@ -264,7 +268,7 @@ export function populatePlaylists(playlists: any[]) {
         return;
       }
       
-      if (playlist.images[0]) {
+      if (playlist.images[0]) { // gets the cover image of the playlist
         const img = document.createElement("img");
         img.src = playlist.images[0].url;
         img.alt = `${playlist.name} cover image`;
@@ -273,30 +277,28 @@ export function populatePlaylists(playlists: any[]) {
       }
 
       const link = document.createElement("a");
-      link.href = playlist.external_urls.spotify;
+      link.href = playlist.external_urls.spotify; // url of the playlist
       link.target = "_blank";
       link.innerText = playlist.name;
       li.appendChild(link);
 
       const songCount = document.createElement("p");
-      songCount.innerText = `${playlist.details.tracks.total} songs`;
+      songCount.innerText = `${playlist.details.tracks.total} songs`; // song counter
       li.appendChild(songCount);
 
       const totalDuration = playlist.details.tracks.items
-        .map((item: any) => item.track.duration_ms)
+        .map((item: any) => item.track.duration_ms) // duration counter
         .reduce((sum: number, duration: number) => sum + duration, 0);
 
       const durationElement = document.createElement("p");
-      durationElement.innerText = `Total Duration: ${msToTime(totalDuration)}`;
+      durationElement.innerText = `Total Duration: ${msToTime(totalDuration)}`; 
       li.appendChild(durationElement);
 
 
-      playlistList.appendChild(li);
-
+      playlistList.appendChild(li); // put the playlist data in the list
 
   });
 }
-
 
 function msToTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -326,4 +328,3 @@ export function logout() {
 
   window.location.href = "/";
 }
-

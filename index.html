@@ -16,34 +16,18 @@
     <body>
       <button id="goToPostPage">Feed</button>
 
-      <h1>Display your Spotify profile data</h1>
-
       <section id="profile">
-      <h2>Logged in as <span id="displayName"></span></h2>
-      <div class="avatar">
-        <span id="avatar"></span>
-
-      </div>
-      <ul>
-          <li>User ID: <span id="id"></span></li>
-          <li>Email: <span id="email"></span></li>
-          <li>Spotify URI: <a id="uri" href="#"></a></li>
-          <li>Link: <a id="url" href="#"></a></li>
-          <li>Profile Image: <span id="imgUrl"></span></li>
-      </ul>
-      </section>
-      <section id="playlists">
+        <div class="profile-display">
+          <div class="avatar">
+            <span id="avatar"></span>
+          </div>
+          <h2><span id="displayName"></span></h2>
+        </div>
         <h2>Your Playlists</h2>
         <ul id="playlistList"></ul>
       </section>
-      
       
       <button id="logoutButton">Logout</button>
 
     </body>
 </html>
-
- <!-- Note- We're referring directly to the TypeScript file, 
- and we're using the `type="module"` attribute. 
- Vite will transpile our TypeScript to JavaScript 
- so that it can run in the browser. -->

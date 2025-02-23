@@ -3,14 +3,31 @@ body {
 }
 
 #goToPostPage {
-  width: 100px;
-  height: 50px;
+  width: 80px;
+  height: 30px;
 }
 
 #goToPostPage button {
   padding: 5px;
 }
 
+.profile-display {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#displayName {
+  margin-left: 25px;
+}
+
 .avatar img {
-  width: 50px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+}
+
+#logoutButton {
+  width: 80px;
+  height: 30px;
 }

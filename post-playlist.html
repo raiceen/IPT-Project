@@ -21,7 +21,7 @@
     <div class="feed-style">
         <div class="left-section">
             <div class="logo"> 
-              Logo
+              
             </div>
             <div class="menu">
               <div class="home">
@@ -50,15 +50,18 @@
               <span id="avatar"> </span>
               <form id="playlistForm">
                 <div class="type-selector">
-                  <button type="button" class="type-button active" data-type="playlist">
+                  <button type="button" class="type-button" data-type="playlist">
                       Playlist
                   </button>
                   <button type="button" class="type-button" data-type="track">
                       Song
                   </button>
                 </div>
-                <input type="text" id="playlistLink" placeholder="Share your favorite Music" required>
-                <input id="postCaption" placeholder="What do you think of it?">
+                <input type="text" id="playlistLink" placeholder="Select a type you want to post" required>
+                <div class="search-container">
+                  <div id="searchResults" class="search-results"></div>
+                </div>
+                <input id="postCaption" placeholder="Caption">
                 <button type="submit">POST</button>
               </form>
             </div>
