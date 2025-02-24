@@ -8,14 +8,6 @@ interface UserProfile {
     spotify: string;
   };
   href?: string;
-  explicit_content?: {
-    filter_enabled: boolean;
-    filter_locked: boolean;
-  };
-  followers?: {
-    href: string;
-    total: number;
-  };
   product?: string;
   type?: string;
 }

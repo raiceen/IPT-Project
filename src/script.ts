@@ -117,6 +117,16 @@ export async function getAccessToken(clientId: string, code: string): Promise<st
   return access_token;
 }
 
+document.getElementById("goToPostPage")!.addEventListener("click", () => {
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+      // redirect to the new page with the access token as a query parameter
+      window.location.href = `post-playlist.html?accessToken=${encodeURIComponent(token)}`;
+  } else {
+      alert("Please log in first.");
+  }
+});
+
 //PROFILE API! gets the user's profile data
 async function fetchProfile(token: string): Promise<UserProfile> {
   const result = await fetch("https://api.spotify.com/v1/me", {
@@ -306,17 +316,6 @@ function msToTime(ms: number): string {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
 }
-
-
-document.getElementById("goToPostPage")!.addEventListener("click", () => {
-  const token = localStorage.getItem("accessToken");
-  if (token) {
-      // redirect to the new page with the access token as a query parameter
-      window.location.href = `post-playlist.html?accessToken=${encodeURIComponent(token)}`;
-  } else {
-      alert("Please log in first.");
-  }
-});
 
 document.getElementById("logoutButton")!.addEventListener("click", logout);
 
