@@ -1,10 +1,10 @@
 /// <reference path="./type.d.ts" />
 
-function getRelativeTime(timestamp: string): string { // converts timestamp
-  const date = new Date(timestamp);
+function getRelativeTime(timestamp: string): string { // converts timestamp   
+  const date = new Date(timestamp); 
   const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000); // calculate the milliseconds and round it up to seconds
+
   const intervals = {
     year: 31536000, 
     month: 2592000,
@@ -37,10 +37,10 @@ function getRelativeTime(timestamp: string): string { // converts timestamp
   return "Just now";
 }
 
-// tracks if the user is trying to post a track or playlist 
-let selectedType = '';
+// choosing a post type
+let selectedType = ''; // blank choice
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => { // when whole page is loaded run the following code
   const typeButtons = document.querySelectorAll('.type-button');
   const linkInput = document.getElementById("playlistLink") as HTMLInputElement;
   typeButtons.forEach(button => {
@@ -96,11 +96,9 @@ document.getElementById("playlistForm")!.addEventListener("submit", async (event
       timestamp: new Date().toISOString()
     };
 
-    // Clear inputs
     (document.getElementById("playlistLink") as HTMLInputElement).value = "";
     (document.getElementById("postCaption") as HTMLTextAreaElement).value = "";
 
-    // Display the new post immediately at the top
     displayPost(globalPost);
   } catch (error) {
     console.error("Error:", error);
@@ -221,7 +219,6 @@ results.forEach(result => {
 resultsContainer.style.display = "block";
 }
 
-
 // --- Attach Search Functionality to the Input ---
 const playlistLinkInput = document.getElementById("playlistLink") as HTMLInputElement;
 playlistLinkInput.addEventListener("input", debounce(async (e: Event) => {
@@ -252,7 +249,6 @@ playlistLinkInput.addEventListener("input", debounce(async (e: Event) => {
     resultsContainer.style.display = "none";
   }
 }, 300));
-
 
 function extractSpotifyId(link: string, type: string): string | null {
   const patterns = {
@@ -528,7 +524,6 @@ function initializeComments(container: HTMLElement, postId: string) {
   });
 }
 
-
 function addCommentToUI(comment: AppComment, commentsList: HTMLUListElement, postId: string) {
   const li = document.createElement("li");
   li.className = "comment-item";
@@ -542,7 +537,7 @@ function addCommentToUI(comment: AppComment, commentsList: HTMLUListElement, pos
       </span>
     </div>
     <p class="comment-text">${comment.text}</p>
-    ${comment.userId === currentUser.id ? '<button class="delete-comment-btn">🗑️</button>' : ''}
+    ${comment.userId === currentUser.id ? '<button class="delete-comment-btn"> <div class="delete">Delete</div></button>' : ''}
   `;
 
   const deleteBtn = li.querySelector(".delete-comment-btn");
@@ -588,47 +583,6 @@ function displayAllPlaylists() {
   if (globalPlaylists.length === 0) {
     playlistList.innerHTML = '<p class="no-posts">No saved playlists or tracks found</p>';
   }
-}
-
-function createPostElement(details: Post): HTMLElement {
-  const postDiv = document.createElement("div");
-  postDiv.className = "post-item";
-
-  const typeContent = details.type === 'playlist' ? `
-    <p>Tracks: ${details.totalTracks}</p>
-    <p>Duration: ${details.totalDuration} minutes</p>
-  ` : `
-    <p>Artist: ${details.artist}</p>
-    <p>Duration: ${Math.floor(details.duration! / 60)}:${(details.duration! % 60).toString().padStart(2, '0')}</p>
-  `;
-
-  const interactionsHTML = `
-    <div class="interactions">
-      <button class="reaction-button"><img class="fire-icon" src="/icons/fire-svgrepo-com .svg"> <span class="reaction-count">0</span></button>
-      <button class="comment-button"><img class="comment-icon" src="/icons/bubble-svgrepo-com.svg"></button>
-      <button class="share-button"><img class="share-icon" src="/icons/share-svgrepo-com.svg"></button>
-    </div>
-  `;
-
-  postDiv.innerHTML = `
-    <div class="user-info">
-      <img src="${details.userImage}" alt="${details.userName}" class="user-avatar" width="50">
-      <span class="user-name">${details.userName}</span>
-      <span class="post-time" data-timestamp="${details.timestamp}">${getRelativeTime(details.timestamp)}</span>
-    </div>
-    <div class="post-content">
-      ${details.caption ? `<p class="caption">${details.caption}</p>` : ''}
-      <div class="media-info">
-        <img src="${details.thumbnail}" class="thumbnail" width="100">
-        <div class="metadata">
-          <a href="${details.link}" target="_blank" class="title">${details.name}</a>
-          ${typeContent}
-        </div>
-      </div>
-    </div>
-    ${interactionsHTML}
-  `;
-  return postDiv;
 }
 
 function loadPlaylistsForUser(userId: string): any[] {

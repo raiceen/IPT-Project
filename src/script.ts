@@ -1,11 +1,11 @@
-/// <reference path="./type.d.ts" />
-
 const clientId = "4d3d048c157c413fa6c5686361d5e11e"; // client ID
-const params = new URLSearchParams(window.location.search);
-const code = params.get("code");
-params.append("scope", "user-read-private user-read-email");
+const params = new URLSearchParams(window.location.search); // get the information inside the url
+const code = params.get("code"); // get he code in the URL
+params.append("scope", "user-read-private user-read-email playlist-read-private playlist-read-collaborative"); // scope of the api
 
-export async function redirectToAuthCodeFlow(clientId: string) {
+console.log("Script loaded");
+
+async function redirectToAuthCodeFlow(clientId: string) { // redirect the user to the spotify login
   localStorage.removeItem("userProfile"); 
   sessionStorage.clear(); 
 
@@ -13,10 +13,10 @@ export async function redirectToAuthCodeFlow(clientId: string) {
   const challenge = await generateCodeChallenge(verifier);
 
   localStorage.setItem("verifier", verifier);
-
-  const params = new URLSearchParams();
-  params.append("client_id", clientId);
-  params.append("response_type", "code");
+ 
+  const params = new URLSearchParams(); 
+  params.append("client_id", clientId); // get the client id in the url
+  params.append("response_type", "code"); // 
   params.append("redirect_uri", "http://localhost:5173/callback");
   params.append("scope", "user-read-private user-read-email playlist-read-private" ); // scope of the Spotify API
   params.append("code_challenge_method", "S256");
@@ -25,7 +25,7 @@ export async function redirectToAuthCodeFlow(clientId: string) {
   document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
-async function validateToken(token: string): Promise<boolean> {
+async function validateToken(token: string): Promise<boolean> { // checks if the access token is valid
   try {
     await fetchProfile(token);
     return true;
@@ -36,20 +36,23 @@ async function validateToken(token: string): Promise<boolean> {
 
 const storedToken = localStorage.getItem("accessToken");
 
-// Check if the Token is Stored in the Local Storage
+// check if the token is stored in the local storage
 if (storedToken) {
-    console.log("Using stored token:", storedToken);
-    const profile = await fetchProfile(storedToken);
-    populateUI(profile);
-    if (await validateToken(storedToken)) {
-      console.log("Using stored token:", storedToken);
-      const profile = await fetchProfile(storedToken);
-      populateUI(profile);
-    } else {
+  console.log("Using stored token:", storedToken);
+  
+  const profile = await fetchProfile(storedToken);
+  populateUI(profile);
 
+  if (await validateToken(storedToken)) {
+      console.log("Token is valid. Fetching playlists...");
+      fetchPlaylists(storedToken) // CALL THIS FUNCTION
+        .then(playlists => populatePlaylists(playlists))
+        .catch(error => console.error("Error fetching playlists:", error));
+  } else {
+      console.log("Token invalid. Redirecting to login.");
       localStorage.removeItem("accessToken");
       redirectToAuthCodeFlow(clientId);
-    }
+  }
 } else if (!code) {
   redirectToAuthCodeFlow(clientId);
 } else {
@@ -91,7 +94,7 @@ async function generateCodeChallenge(codeVerifier: string) {
 }
 
 // TOKEN HANDLING! Important for URL navigating and 
-export async function getAccessToken(clientId: string, code: string): Promise<string> {
+async function getAccessToken(clientId: string, code: string): Promise<string> {
   const verifier = localStorage.getItem("verifier"); //stores the token to the local storage
 
   const params = new URLSearchParams();
@@ -151,69 +154,89 @@ async function fetchProfile(token: string): Promise<UserProfile> {
   return profile;
 }
 
-export async function fetchPlaylistDetails(token: string, playlistId: string): Promise<any> {
+export async function fetchPlaylists(token: string): Promise<any[]> {
+  console.log("Fetching playlists from Spotify...");
+  try {
+    let playlists: any[] = [];
+    let nextUrl: string | null = "https://api.spotify.com/v1/me/playlists?limit=50";
+
+    while (nextUrl) {
+      const result = await fetch(nextUrl, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!result.ok) {
+        const errorText = await result.text();
+        console.error("Failed to fetch playlists. Status:", result.status, "Response:", errorText);
+        throw new Error(`Failed to fetch playlists: ${result.status} - ${errorText}`);
+      }
+
+      const data = await result.json();
+      playlists = playlists.concat(data.items);
+      nextUrl = data.next;
+    }
+
+    console.log("Number of playlists fetched:", playlists.length);
+
+    const detailedPlaylists = await Promise.all(
+      playlists.map(async (playlist: any) => {
+        try {
+          const details = await fetchPlaylistDetails(token, playlist.id);
+          console.log("Fetched details for playlist", playlist.id, ":", details);
+          return { ...playlist, ...details };
+        } catch (err) {
+          console.error("Error fetching details for playlist", playlist.id, err);
+          return null;
+        }
+      })
+    );
+    const filteredPlaylists = detailedPlaylists.filter(item => item !== null);
+    console.log("Filtered playlists count:", filteredPlaylists.length);
+    localStorage.setItem("playlists", JSON.stringify(filteredPlaylists));
+    return filteredPlaylists;
+  } catch (error) {
+    console.error("Error in fetchPlaylists:", error);
+    throw error;
+  }
+}
+
+async function fetchPlaylistDetails(token: string, playlistId: string): Promise<any> {
+  console.log("Fetching details for playlist:", playlistId);
   const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}`, {
       headers: { Authorization: `Bearer ${token}` },
   });
 
   if (!response.ok) {
-      throw new Error(`Failed to fetch playlist details: ${response.status} - ${await response.text()}`);
+      const errorText = await response.text();
+      console.error(`Failed to fetch playlist details for ${playlistId}: ${response.status} - ${errorText}`);
+      throw new Error(`Failed to fetch playlist details: ${response.status} - ${errorText}`);
   }
 
   const data = await response.json();
+  console.log("Raw data for playlist", playlistId, data);
+
+  if (!data.tracks || !Array.isArray(data.tracks.items)) {
+    console.error("Invalid tracks data for playlist:", playlistId);
+    throw new Error("Invalid tracks data");
+  }
 
   const totalDurationMs = data.tracks.items.reduce(
       (total: number, item: any) => total + item.track.duration_ms,
       0
   );
   const totalDurationMinutes = Math.floor(totalDurationMs / 60000);
-  
-  
-  return {
-    postId: `${playlistId}_${Date.now()}`, 
-    userId: "", 
-    userName: "",
-    userImage: "",
-    timestamp: new Date().toISOString(),
-    // playlist details
+
+  const result = {
     name: data.name,
-    thumbnail: data.images[0]?.url ?? null,
+    thumbnail: data.images && data.images.length > 0 ? data.images[0].url : null,
     totalTracks: data.tracks.total,
     totalDuration: totalDurationMinutes,
     link: data.external_urls.spotify,
-  }
-} 
-// 
-export async function fetchPlaylists(token: string,): Promise<any[]> {
-  console.log("Fetching playlists with token:", token);
+  };
 
-  const result = await fetch("https://api.spotify.com/v1/me/playlists", {
-      method: "GET",
-      headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-      },
-  });
-
-  if (!result.ok) {
-      const errorText = await result.text();
-      console.error("Failed to fetch playlists. Status:", result.status, "Response:", errorText);
-      throw new Error(`Failed to fetch playlists: ${result.status} - ${errorText}`);
-  }
-
-  const data = await result.json();
-  const playlists = data.items || [];
-
-  const detailedPlaylists = await Promise.all(
-    playlists.map(async (playlist: any) => {
-        const details = await fetchPlaylistDetails(token, playlist.id);
-        return { ...playlist, details };
-    })
-  );
-
-  localStorage.setItem("playlists", JSON.stringify(playlists));
-
-  return detailedPlaylists;
+  console.log("Computed details for playlist", playlistId, result);
+  return result;
 }
 
 function populateUI(profile: UserProfile) {
@@ -261,61 +284,93 @@ function populateUI(profile: UserProfile) {
   }
 }
 
-export function populatePlaylists(playlists: any[]) { // Check if the playlist has content
-  const playlistList = document.getElementById("playlistList")!;
-  playlistList.innerHTML = ""; // Clear previous content
+// Update populatePlaylists() to use correct properties
+export function populatePlaylists(playlists: any[]) {
+  const playlistList = document.getElementById("playlistLists")!;
+  playlistList.innerHTML = "";
 
   if (playlists.length === 0) {
-    playlistList.innerText = "No playlists found.";
+    console.log("No playlists to display");
+    playlistList.innerHTML = '<p class="no-playlists">No playlists found.</p>';
     return;
   }
 
   playlists.forEach((playlist) => {
       const li = document.createElement("li");
-
-      if (playlists.length === 0) {
-        playlistList.innerText = "No playlists found.";
-        return;
-      }
       
-      if (playlist.images[0]) { // gets the cover image of the playlist
+      // Image
+      if (playlist.thumbnail) {
         const img = document.createElement("img");
-        img.src = playlist.images[0].url;
-        img.alt = `${playlist.name} cover image`;
-        img.width = 100; 
+        img.src = playlist.thumbnail;
+        img.alt = `${playlist.name} cover`;
+        img.width = 100;
         li.appendChild(img);
       }
 
+      // Name and link
       const link = document.createElement("a");
-      link.href = playlist.external_urls.spotify; // url of the playlist
+      link.href = playlist.link;
       link.target = "_blank";
-      link.innerText = playlist.name;
+      link.textContent = playlist.name;
       li.appendChild(link);
 
-      const songCount = document.createElement("p");
-      songCount.innerText = `${playlist.details.tracks.total} songs`; // song counter
-      li.appendChild(songCount);
+      // Track count
+      const trackCount = document.createElement("p");
+      trackCount.textContent = `${playlist.totalTracks} songs`;
+      li.appendChild(trackCount);
 
-      const totalDuration = playlist.details.tracks.items
-        .map((item: any) => item.track.duration_ms) // duration counter
-        .reduce((sum: number, duration: number) => sum + duration, 0);
+      // Duration
+      const duration = document.createElement("p");
+      duration.textContent = `Total Duration: ${playlist.totalDuration} minutes`;
+      li.appendChild(duration);
 
-      const durationElement = document.createElement("p");
-      durationElement.innerText = `Total Duration: ${msToTime(totalDuration)}`; 
-      li.appendChild(durationElement);
-
-
-      playlistList.appendChild(li); // put the playlist data in the list
-
+      playlistList.appendChild(li);
   });
 }
 
-function msToTime(ms: number): string {
-  const totalSeconds = Math.floor(ms / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
-}
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM fully loaded");
+
+  // Check if access token is available
+  const accessToken = localStorage.getItem("spotify_access_token");
+  console.log("Access Token:", accessToken);
+
+  if (!accessToken) {
+      console.error("No access token found. User may not be logged in.");
+      return;
+  }
+
+  // Fetch Playlists
+  fetch("https://api.spotify.com/v1/me/playlists", {
+      headers: {
+          Authorization: `Bearer ${accessToken}`
+      }
+  })
+  .then(response => response.json())
+  .then(data => {
+      console.log("Playlists Data:", data);
+
+      const playlistList = document.getElementById("playlistLists");
+      if (!playlistList) {
+          console.error("Playlist container not found");
+          return;
+      }
+
+      // Clear existing content
+      playlistList.innerHTML = "";
+
+      if (data.items) {
+          data.items.forEach((playlist: { name: string | null; }) => {
+              const li = document.createElement("li");
+              li.textContent = playlist.name;
+              playlistList.appendChild(li);
+          });
+      } else {
+          console.error("No playlists found");
+      }
+  })
+  .catch(error => console.error("Error fetching playlists:", error));
+});
 
 document.getElementById("logoutButton")!.addEventListener("click", logout);
 

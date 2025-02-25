@@ -199,7 +199,7 @@
 .post-caption {
   margin: 1rem 0;
   padding: 0.5rem;
-  background: #ffffff;
+  background: #0000;
   border-radius: 8px;
 }
 
@@ -220,6 +220,20 @@
   color: #666;
   padding: 20px;
   margin: 20px 0;
+}
+
+.delete-comment-btn {
+  background-color: #f1f1f1;
+  border: none;
+}
+
+.delete {
+  color: rgb(51, 72, 136);
+  cursor: pointer;
+}
+
+.delete:hover {
+  text-decoration: underline;
 }
 
 .user-info {
